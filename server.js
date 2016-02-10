@@ -14,7 +14,15 @@ app.get('/', function (req, res) {
 });
 
 app.get('/todos', function (req, res) {
-	res.json(todos);
+	var queryParms =  req.query;
+	var filteredTodos = todos;
+
+	if (typeof queryParms !== 'undefined' && queryParms.hasOwnProperty('completed') && queryParms.completed === 'true'){
+		filteredTodos = _.where(filteredTodos, {completed: true});
+	}else if (typeof queryParms !== 'undefined' && queryParms.hasOwnProperty('completed') && queryParms.completed === 'false') {
+		filteredTodos = _.where(filteredTodos, {completed: false});
+	}
+	res.json(filteredTodos);
 });
 
 app.get('/todos/:id', function (req, res) {
@@ -65,17 +73,7 @@ var matchedItem = _.findWhere(todos, {id: todoid});
 
 //PUt - /todos/:id
 app.put ('/todos/:id', function (req, res) {
-	// var todoid = parseInt(req.params.id);
-	// var matchedItem = _.findWhere(todos, {id: todoid});
 
-	// if(matchedItem){
-	// 	todos = _.without(todos, matchedItem);
-	// 	todos.push();
-	// 	res.json(matchedItem);
-	// }else{
-	// 	res.status(404).send({"Error": "No todo found with that id"});	
-	// }
-	
 	var todoid = parseInt(req.params.id, 10);	
 	var body = _.pick(req.body, 'description', 'completed');;	
 
