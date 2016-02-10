@@ -47,10 +47,54 @@ app.post('/todos', function (req, res) {
 
 //DELETE - /todos/:id
 app.delete ('/todos/:id', function (req, res) {
-	var todoid = parseInt(req.params.id, 10);
-	var matchedItem = _.findWhere(todos, {id: todoid});
+	var todoid = parseInt(req.params.id, 10);	
+	var body = _.pick(req.body, 'description', 'completed');;	
+
+	if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+		return res.status(404).send({"Error": "Request has incorrect values"});
+	}
+
+var matchedItem = _.findWhere(todos, {id: todoid});
 	if(matchedItem){
 		todos = _.without(todos, matchedItem);
+		res.json(matchedItem);
+	}else{
+		return res.status(404).send({"Error": "No todo found with that id"});	
+	}
+});
+
+//PUt - /todos/:id
+app.put ('/todos/:id', function (req, res) {
+	// var todoid = parseInt(req.params.id);
+	// var matchedItem = _.findWhere(todos, {id: todoid});
+
+	// if(matchedItem){
+	// 	todos = _.without(todos, matchedItem);
+	// 	todos.push();
+	// 	res.json(matchedItem);
+	// }else{
+	// 	res.status(404).send({"Error": "No todo found with that id"});	
+	// }
+	
+	var todoid = parseInt(req.params.id, 10);	
+	var body = _.pick(req.body, 'description', 'completed');;	
+
+	var validAttributes = {};
+	if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+		validAttributes.completed = body.completed;
+	}else if (body.hasOwnProperty('completed')) {
+		return res.status(404).send({"Error": "completed has incorrect value type"});
+	} 
+
+	if(body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+		validAttributes.description = body.description;
+	}else if (body.hasOwnProperty('description')) {
+		return res.status(404).send({"Error": "body has incorrect value type"});
+	} 
+
+	var matchedItem = _.findWhere(todos, {id: todoid});
+	if(matchedItem){
+		_.extend(matchedItem, validAttributes);
 		res.json(matchedItem);
 	}else{
 		return res.status(404).send({"Error": "No todo found with that id"});	
