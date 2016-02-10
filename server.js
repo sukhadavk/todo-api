@@ -13,6 +13,8 @@ app.get('/', function (req, res) {
 	res.send('TODO API Root');
 });
 
+
+// /todos?completed=true&q=house
 app.get('/todos', function (req, res) {
 	var queryParms =  req.query;
 	var filteredTodos = todos;
@@ -22,6 +24,13 @@ app.get('/todos', function (req, res) {
 	}else if (typeof queryParms !== 'undefined' && queryParms.hasOwnProperty('completed') && queryParms.completed === 'false') {
 		filteredTodos = _.where(filteredTodos, {completed: false});
 	}
+
+	if (typeof queryParms !== 'undefined' && queryParms.hasOwnProperty('q') && queryParms.q.trim().length > 0){
+		filteredTodos = _.filter(filteredTodos, function (todo) {
+			return todo.description.toLowerCase().indexOf(queryParms.q.toLowerCase()) > -1;
+		});
+	}
+
 	res.json(filteredTodos);
 });
 
