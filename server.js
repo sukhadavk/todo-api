@@ -36,13 +36,25 @@ app.post('/todos', function (req, res) {
 	if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
 		return res.status(404).send();
 	}
-	
+
 	body.description = body.description.trim();
 	body.id = todoNextId++;
 	
 	todos.push(body);
 	
 	res.json(body);
+});
+
+//DELETE - /todos/:id
+app.delete ('/todos/:id', function (req, res) {
+	var todoid = parseInt(req.params.id, 10);
+	var matchedItem = _.findWhere(todos, {id: todoid});
+	if(matchedItem){
+		todos = _.without(todos, matchedItem);
+		res.json(matchedItem);
+	}else{
+		return res.status(404).send({"Error": "No todo found with that id"});	
+	}
 });
 
 app.listen(PORT, function () {
