@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db.js');
+var bcrypt = require('bcryptjs');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -119,7 +120,7 @@ app.put('/todos/:id', function(req, res) {
 	});
 });
 
-app.post('/users', function (req, res) {
+app.post('/users', function(req, res) {
 	var body = _.pick(req.body, 'email', 'password');
 
 	db.user.create(body).then(function(user) {
@@ -129,7 +130,34 @@ app.post('/users', function (req, res) {
 	});
 });
 
-db.sequelize.sync({force: true}).then(function() {
+//POST - /users/login
+app.post('/users/login', function(req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+	var where = {};
+
+	if (typeof req.body.email === 'string' && req.body.email.trim().length > 0 && typeof req.body.passwword === 'string' && req.body.password.trim().length > 0) {
+		res.status(500).send();
+	} else {
+		where.email = req.body.email;
+
+		db.user.findOne({
+			where: where
+		}).then(function(user) {
+			if (!user || !bcrypt.compareSync(body.password, user.get('password_hash'))) {
+				return res.status(401).send();
+			}
+
+			res.status(200).json(user.toPublicJSON());
+
+		}, function(e) {
+			res.status(500).json(e);
+		});
+	}
+});
+
+db.sequelize.sync({
+	//force: true
+}).then(function() {
 	app.listen(PORT, function() {
 		console.log('Express listening on port : ' + PORT);
 	});
