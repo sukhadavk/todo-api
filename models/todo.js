@@ -13,4 +13,4 @@ module.exports = function(sequelize, DataTpes) {
 			defaultValue: false
 		}
 	});
-}
+};

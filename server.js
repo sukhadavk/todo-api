@@ -6,6 +6,7 @@ var db = require('./db.js');
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
+var users = [];
 var todoNextId = 1;
 
 app.use(bodyParser.json());
@@ -103,9 +104,6 @@ app.put('/todos/:id', function(req, res) {
 		attributes.description = body.description;
 	}
 
-	console.log("updated attrib: ");
-	console.log(attributes);
-
 	db.todo.findById(todoid).then(function(todo) {
 		if (todo) {
 			todo.update(attributes).then(function(todo) {
@@ -118,6 +116,16 @@ app.put('/todos/:id', function(req, res) {
 		}
 	}, function() {
 		res.status(500).send();
+	});
+});
+
+app.post('/users', function (req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+
+	db.user.create(body).then(function(user) {
+		res.status(200).json(user.toJSON());
+	}, function(e) {
+		res.status(404).json(e);
 	});
 });
 
