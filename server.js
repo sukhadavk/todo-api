@@ -16,38 +16,43 @@ app.get('/', function(req, res) {
 
 // /todos?completed=true&q=house
 app.get('/todos', function(req, res) {
-	var queryParms = req.query;
-	var filteredTodos = todos;
+	var query = req.query;
+	var where = {};
 
-	if (typeof queryParms !== 'undefined' && queryParms.hasOwnProperty('completed') && queryParms.completed === 'true') {
-		filteredTodos = _.where(filteredTodos, {
-			completed: true
-		});
-	} else if (typeof queryParms !== 'undefined' && queryParms.hasOwnProperty('completed') && queryParms.completed === 'false') {
-		filteredTodos = _.where(filteredTodos, {
-			completed: false
-		});
+	if (typeof query !== 'undefined' && query.hasOwnProperty('completed') && query.completed === 'true') {
+		where.completed = true;
+	} else if (typeof query !== 'undefined' && query.hasOwnProperty('completed') && query.completed === 'false') {
+		where.completed = false;
+	}
+	if (typeof query !== 'undefined' && query.hasOwnProperty('q') && query.q.trim().length > 0) {
+		where.description = {
+			$like: '%' + query.q + '%'
+		}
 	}
 
-	if (typeof queryParms !== 'undefined' && queryParms.hasOwnProperty('q') && queryParms.q.trim().length > 0) {
-		filteredTodos = _.filter(filteredTodos, function(todo) {
-			return todo.description.toLowerCase().indexOf(queryParms.q.toLowerCase()) > -1;
-		});
-	}
-
-	res.json(filteredTodos);
+	db.todo.findAll({
+		where: where
+	}).then(function(todos) {
+		if (todos) {
+			res.status(200).json(todos);
+		} else {
+			res.status(404).send();
+		}
+	}, function(e) {
+		res.status(404).json(e);
+	});
 });
 
 app.get('/todos/:id', function(req, res) {
 	var todoid = parseInt(req.params.id);
-	
+
 	db.todo.findById(todoid).then(function(todo) {
 		if (todo) {
 			res.status(200).json(todo.toJSON());
 		} else {
 			res.status(404).send();
 		}
-	}, function (e) {
+	}, function(e) {
 		res.status(404).json(e);
 	});
 });
