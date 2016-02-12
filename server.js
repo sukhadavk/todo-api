@@ -73,23 +73,19 @@ app.delete('/todos/:id', function(req, res) {
 	var todoid = parseInt(req.params.id, 10);
 	var body = _.pick(req.body, 'description', 'completed');;
 
-	if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-		return res.status(404).send({
-			"Error": "Request has incorrect values"
-		});
-	}
-
-	var matchedItem = _.findWhere(todos, {
-		id: todoid
+	db.todo.destroy({
+		where: {
+			id: todoid
+		}
+	}).then(function (numOfTodos) {
+		if (numOfTodos > 0) {
+			res.status(200).json(numOfTodos);
+		} else {
+			res.status(404).send('No todo with this id');
+		}
+	}, function (e) {
+		res.status(404).json(e);
 	});
-	if (matchedItem) {
-		todos = _.without(todos, matchedItem);
-		res.json(matchedItem);
-	} else {
-		return res.status(404).send({
-			"Error": "No todo found with that id"
-		});
-	}
 });
 
 //PUt - /todos/:id
