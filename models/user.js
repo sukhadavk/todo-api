@@ -15,5 +15,14 @@ module.exports = function(sequelize, DataTpes) {
 				len: [7, 100]
 			}
 		}
+	}, {
+		hooks: {
+			beforeValidate: function(user, options) {
+				if (typeof user.email === 'string' && user.email.trim().length > 0) {
+					user.email = user.email.toLowerCase();
+				}
+			}
+		}
+
 	});
 };
