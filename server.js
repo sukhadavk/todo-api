@@ -77,13 +77,13 @@ app.delete('/todos/:id', function(req, res) {
 		where: {
 			id: todoid
 		}
-	}).then(function (numOfTodos) {
+	}).then(function(numOfTodos) {
 		if (numOfTodos > 0) {
 			res.status(200).json(numOfTodos);
 		} else {
 			res.status(404).send('No todo with this id');
 		}
-	}, function (e) {
+	}, function(e) {
 		res.status(404).json(e);
 	});
 });
@@ -93,35 +93,32 @@ app.put('/todos/:id', function(req, res) {
 
 	var todoid = parseInt(req.params.id, 10);
 	var body = _.pick(req.body, 'description', 'completed');;
+	var attributes = {};
 
-	var validAttributes = {};
-	if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-		validAttributes.completed = body.completed;
-	} else if (body.hasOwnProperty('completed')) {
-		return res.status(404).send({
-			"Error": "completed has incorrect value type"
-		});
+	if (body.hasOwnProperty('completed')) {
+		attributes.completed = body.completed;
 	}
 
-	if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
-		validAttributes.description = body.description;
-	} else if (body.hasOwnProperty('description')) {
-		return res.status(404).send({
-			"Error": "body has incorrect value type"
-		});
+	if (body.hasOwnProperty('description')) {
+		attributes.description = body.description;
 	}
 
-	var matchedItem = _.findWhere(todos, {
-		id: todoid
+	console.log("updated attrib: ");
+	console.log(attributes);
+
+	db.todo.findById(todoid).then(function(todo) {
+		if (todo) {
+			todo.update(attributes).then(function(todo) {
+				res.json(todo.toJSON());
+			}, function(e) {
+				res.status(404).json(e);
+			});
+		} else {
+			res.status(404).send();
+		}
+	}, function() {
+		res.status(500).send();
 	});
-	if (matchedItem) {
-		_.extend(matchedItem, validAttributes);
-		res.json(matchedItem);
-	} else {
-		return res.status(404).send({
-			"Error": "No todo found with that id"
-		});
-	}
 });
 
 db.sequelize.sync().then(function() {
